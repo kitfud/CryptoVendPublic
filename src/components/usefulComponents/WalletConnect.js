@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useContext,createContext } from 'react';
+import React, { useState, useEffect,useContext,createContext,useRef } from 'react';
 import {  Button, CircularProgress, Box,  Typography, Card, CardContent} from "@mui/material"
 import { ethers } from 'ethers'
 import { ContractContext } from '../../App';
@@ -6,6 +6,11 @@ import { ContractContext } from '../../App';
 export const WalletContext = createContext();
 
 const WalletConnect = ({
+    location,
+    depositData,
+    setDepositMade,
+    depositMade,
+    contract,
     defaultAccount,
     setDefaultAccount,
     walletBalance,
@@ -18,14 +23,23 @@ const WalletConnect = ({
 
     const contractinfo = useContext(ContractContext);
 
+    const userAccount = useRef(null)
+    const userProvier = useRef(null)
+    const userSigner = useRef(null)
+    const userContract = useRef(null)
+
     const [connButtonText, setConnButtonText] = useState('Connect Wallet');
     const [accountchanging, setAccountChanging] = useState(false)
     const [errorMessage, setErrorMessage] = useState(null);
     const [connectButtonColor, setConnectButtonColor] = useState("primary")
     const [processing, setProcessing] = useState(false)
+    const [contractbalance, setContractBalance] = useState(null)
+    const [recentDeposit, setRecentDeposit] = useState(null)
 
     const abi = contractinfo.abi
     const address = contractinfo.address
+
+  
 
     
     const connectWalletHandler = () => {
@@ -55,7 +69,8 @@ const WalletConnect = ({
     const accountChangedHandler = (newAccount) => {
         if (!accountchanging) {
             setAccountChanging(true)
-            setDefaultAccount(checkAccountType(newAccount));
+            checkAccountType(newAccount);
+            setDefaultAccount(userAccount.current);
             updateEthers();
         }
     
@@ -63,10 +78,13 @@ const WalletConnect = ({
     
     const checkAccountType = (newAccount) => {
         if (Array.isArray(newAccount)) {
-            return newAccount[0].toString()
+            window.sessionStorage.setItem('userAccount', newAccount[0].toString())
+            userAccount.current = newAccount[0].toString()
+       
         }
         else {
-            return newAccount
+            window.sessionStorage.setItem('userAccount', newAccount)
+            userAccount.current = newAccount
         }
     }
     
@@ -96,10 +114,32 @@ const WalletConnect = ({
 
     }
 
+    const getContractBalance = async()=>{
+        if(contract){
+        let contractBalance = await contract.getBalance();
+        setContractBalance(ethers.utils.formatEther(contractBalance));
+        }
+    }
+
+    useEffect(()=>{
+        if (depositMade===true){
+        getContractBalance()
+        setDepositMade(false)
+        }
+    },[depositMade])
+
+    useEffect(()=>{
+        if (recentDeposit !== depositData){
+        setRecentDeposit(depositData)
+        getContractBalance()
+        }
+    },[depositData])
+
 
     useEffect(() => {
 
         getWalletBalance(provider)
+        getContractBalance()
 
     }, [provider,walletBalance])
 
@@ -118,6 +158,17 @@ const WalletConnect = ({
 
 
 
+    useEffect(()=>{
+if(window.sessionStorage.getItem('userAccount') !== null){
+    setDefaultAccount(window.sessionStorage.getItem('userAccount'))
+    setConnButtonText('Wallet Connected');
+    updateEthers();
+}
+
+    },[])
+
+
+
   return (
       <>
      
@@ -132,8 +183,9 @@ const WalletConnect = ({
                         
                         <Card variant="outlined" sx={{ display: 'inline-block', backgroundColor: "lightgreen" }}>
                             <CardContent>
-                                <Typography variant="h3" sx={{ fontSize: 15 }}>Address: {defaultAccount}</Typography>
-                                <Typography variant="h3" sx={{ fontSize: 15 }}>Wallet Balance: {walletBalance}</Typography>
+                                <Typography variant="h2" sx={{ fontSize: 15 }}>Address: {defaultAccount}</Typography>
+                                <Typography variant="h2" sx={{ fontSize: 15 }}>Wallet Balance: {walletBalance}</Typography>
+                                <Typography variant="h2" sx={{ fontSize: 15 }}>Vending Machine Balance: {contractbalance} </Typography>
                       
                             </CardContent>
                         </Card>
@@ -143,6 +195,8 @@ const WalletConnect = ({
                     </>
 
                 ) :
+
+                
                     (
                         <Typography>
                             {errorMessage}

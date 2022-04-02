@@ -6,8 +6,9 @@ import Home from './components/Home';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ABI from "./chain-info/abi.json"
-import FlowWallet from './components/FlowWallet';
+import Connect from './components/Connect';
 import { useState, createContext } from "react";
+import Sell from './components/Sell';
 
 export const ContractContext = createContext();
 
@@ -17,10 +18,10 @@ const {REACT_APP_CONTRACTADDRESS: contractDeploymentAddress} = process.env
 let theme = createTheme({
   palette: {
     primary: {
-      main: '#aa2e25',
+      main: '#9e00c5',
     },
     secondary: {
-      main: '#ffef62',
+      main: '#00c853',
     },
   },
   typography: {
@@ -30,10 +31,11 @@ let theme = createTheme({
 
 function App() {
 
-  const flowWalletAddress = contractDeploymentAddress
+
+  const cryptoVendAddress = contractDeploymentAddress
   const {abi} = ABI
   const contractDetails = {
-    address: flowWalletAddress,
+    address: cryptoVendAddress,
     abi: abi
   }
 
@@ -42,12 +44,13 @@ function App() {
    <ThemeProvider theme={theme}>
      <Container className="App">
 
-       <Navbar/>
-       <Card sx={{height:'80vh',backgroundColor:'gold'}}>
+  <Navbar/>
+  <Card sx={{height:'80vh',backgroundColor:'#5efc82'}}>
   <CardContent>
   <Routes>
            <Route path="/" element={<Home/>}/> 
-           <Route path="flow" element={<FlowWallet/>}/>
+           <Route path="connect" element={<Connect/>}/>
+           <Route path="sell" element={<Sell/>}/>
   </Routes>
   </CardContent>
       </Card>

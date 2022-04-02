@@ -8,7 +8,7 @@ import {
   Typography,
   IconButton
 } from '@mui/material'
-
+import StorefrontIcon from '@mui/icons-material/Storefront';
 import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles((theme) => ({
@@ -43,8 +43,9 @@ const Navbar =() => {
       <Toolbar>
         <IconButton href="/">
         <Typography variant="h4" className={classes.logo} color="white">
-          FlowWallet 
+         CryptoVend 
         </Typography>
+        <StorefrontIcon fontSize="large" sx={{marginLeft:1, color:'white'}}></StorefrontIcon>
         </IconButton>
       
       
@@ -55,8 +56,15 @@ const Navbar =() => {
           </div> 
 
              <div className={classes.navlinks} >
-            <Link to="flow" className={classes.link}>
-              FLOW
+            <Link to="connect" className={classes.link}>
+              CONNECT
+            </Link>     
+          </div>   
+
+
+          <div className={classes.navlinks} >
+            <Link to="sell" className={classes.link}>
+              SELL
             </Link>     
           </div>   
 
