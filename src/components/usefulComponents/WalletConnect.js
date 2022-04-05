@@ -1,11 +1,13 @@
 import React, { useState, useEffect,useContext,createContext,useRef } from 'react';
-import {  Button, CircularProgress, Box,  Typography, Card, CardContent} from "@mui/material"
+import {  Button, CircularProgress, Box,  Typography, Card, CardContent, CardMedia,Grid} from "@mui/material"
 import { ethers } from 'ethers'
 import { ContractContext } from '../../App';
+import VendingMachineImage from './VendingMachineImage.png'
 
 export const WalletContext = createContext();
 
 const WalletConnect = ({
+    signer,
     location,
     depositData,
     setDepositMade,
@@ -24,9 +26,7 @@ const WalletConnect = ({
     const contractinfo = useContext(ContractContext);
 
     const userAccount = useRef(null)
-    const userProvier = useRef(null)
-    const userSigner = useRef(null)
-    const userContract = useRef(null)
+ 
 
     const [connButtonText, setConnButtonText] = useState('Connect Wallet');
     const [accountchanging, setAccountChanging] = useState(false)
@@ -35,13 +35,19 @@ const WalletConnect = ({
     const [processing, setProcessing] = useState(false)
     const [contractbalance, setContractBalance] = useState(null)
     const [recentDeposit, setRecentDeposit] = useState(null)
+    const [tokenholder, setIsTokenHolder] = useState(false)
+    const [tokensheld, setTokensHeld] = useState([])
+    const [vendingcontract, setVendingContract] = useState(null)
+    const [tokenselect, setTokenSelect] = useState(false)
+    const [vendingaddress, setVendingAddress] = useState(null)
+    const [vendContract, setVendContract] = useState(null)
+    const [depositdata, setDepositData] = useState(null)
 
     const abi = contractinfo.abi
     const address = contractinfo.address
+    const abiVending = contractinfo.abiVending
 
-  
-
-    
+   
     const connectWalletHandler = () => {
         if (window.ethereum && window.ethereum.isMetaMask) {
             console.log("CONNECTING TO WALLET")
@@ -51,9 +57,6 @@ const WalletConnect = ({
                     accountChangedHandler(result[0]);
                     setConnButtonText('Wallet Connected');
                     setConnectButtonColor("success")
-    
-    
-    
                 })
                 .catch(error => {
                     setErrorMessage(error.message);
@@ -100,6 +103,48 @@ const WalletConnect = ({
     
     }
 
+    const eventListenerConnect = async ()=>{
+        if(vendingaddress !== null){
+        console.log("address: " + vendingaddress)
+        console.log(JSON.stringify(abiVending))
+        let vendContract = await new ethers.Contract(vendingaddress, abiVending,provider)
+        console.log(vendContract)
+        setVendContract(vendContract)
+        }
+    }
+
+useEffect(()=>{
+console.log("event listner connect")
+eventListenerConnect()
+
+},[vendingaddress])
+
+useEffect(()=>{
+console.log("vend connect")
+if(vendContract!==null){
+    console.log("EVENT LISTENER ACTIVE")
+    vendContract.on("Deposit",(payee, value, time, contractBalance,event)=>{
+        let data = {
+          payee: payee, 
+          amount: value.toString(),
+          time: time.toString(),
+          contractBalance: contractBalance.toString(),
+          event:event
+                    }
+        setDepositData(data)
+        vendContract.removeListener("Deposit",(payee,value,time,contractBalance,event))
+       
+                })
+}
+
+}, [vendContract])
+
+
+useEffect(()=>{
+console.log("UPDATAE IN DEPOSIT DATA")
+getContractBalance()
+},[depositdata])
+
     const chainChangedHandler = () => {
         // reload the page to avoid any errors with chain change mid use of application
         window.location.reload();
@@ -115,31 +160,93 @@ const WalletConnect = ({
     }
 
     const getContractBalance = async()=>{
-        if(contract){
-        let contractBalance = await contract.getBalance();
+        if(vendingcontract !== null){
+        let contractBalance = await contract.getBalance(vendingcontract);
         setContractBalance(ethers.utils.formatEther(contractBalance));
         }
     }
 
-    useEffect(()=>{
-        if (depositMade===true){
-        getContractBalance()
-        setDepositMade(false)
+    const tokenHolderCheck = async()=>{
+        if (contract !== null && defaultAccount !== null){
+          let holder =  await contract.checkIfTokenHolder(defaultAccount)
+          console.log(holder)
+          setIsTokenHolder(holder)
+          
+          if (holder){
+            let holdingTokens = await contract.addressToTokenID(defaultAccount)
+            let tokenNums = []
+            holdingTokens.forEach(element=> tokenNums.push(element.toNumber()))
+            console.log(tokenNums)
+            setTokensHeld(tokenNums)
+          }
         }
-    },[depositMade])
+    }
 
+    const getVendingContract = async (select)=>{
+        let contractAddress = await contract.getVendingContractAddressByToken(select)
+        console.log(contractAddress)
+        setVendingContract(select)
+        setVendingAddress(contractAddress)
+    }
+
+    const handleTokenSelect = (select) =>{
+      getVendingContract(select)
+      setTokenSelect(true)
+    }
+
+    const handleTokenDisconnect = ()=>{
+        setTokenSelect(false)
+        setVendingContract(null)
+        setVendingAddress(null)
+    }
+
+
+    const TokenSelect = ()=>{
+        return (
+            !tokenselect?
+            tokensheld.map((item)=>{
+                return (
+                    <Box key={item} sx={{display:'inline-block', paddingLeft:1,paddingRight:1}}>
+                    <Card sx={{width:150, height:250}}>
+                    <CardMedia
+                    component="img"
+                    image={VendingMachineImage}
+                    />
+                    <CardContent>
+                    <Typography>Token: {item}</Typography>
+                    </CardContent>
+                    <Button variant='contained' color='success' onClick={(e)=>handleTokenSelect(item)}>CONNECT</Button>
+                    </Card>
+                   
+                    </Box>)
+            }):
+            <Grid sx={{alignItems:"center",display:'flex', flexDirection:'column'}}>
+            <Box> 
+            <Card sx={{width:150, height:250}}>
+            <CardMedia
+            component="img"
+            image={VendingMachineImage}
+            />
+            <Typography>Token: {vendingcontract}</Typography>
+            <Button variant='contained' color='error' onClick={handleTokenDisconnect}>DISCONNECT</Button>
+            </Card>
+            </Box>
+            </Grid>
+        )
+    }
+
+ 
     useEffect(()=>{
-        if (recentDeposit !== depositData){
-        setRecentDeposit(depositData)
-        getContractBalance()
-        }
-    },[depositData])
+if(vendingcontract!==null){
+    getContractBalance()
+}
+    },[vendingcontract])
 
 
     useEffect(() => {
 
         getWalletBalance(provider)
-        getContractBalance()
+        tokenHolderCheck()
 
     }, [provider,walletBalance])
 
@@ -155,17 +262,6 @@ const WalletConnect = ({
         }
 
     }, [accountchanging])
-
-
-
-    useEffect(()=>{
-if(window.sessionStorage.getItem('userAccount') !== null){
-    setDefaultAccount(window.sessionStorage.getItem('userAccount'))
-    setConnButtonText('Wallet Connected');
-    updateEthers();
-}
-
-    },[])
 
 
 
@@ -185,8 +281,16 @@ if(window.sessionStorage.getItem('userAccount') !== null){
                             <CardContent>
                                 <Typography variant="h2" sx={{ fontSize: 15 }}>Address: {defaultAccount}</Typography>
                                 <Typography variant="h2" sx={{ fontSize: 15 }}>Wallet Balance: {walletBalance}</Typography>
-                                <Typography variant="h2" sx={{ fontSize: 15 }}>Vending Machine Balance: {contractbalance} </Typography>
-                      
+                                <Typography variant="h2" sx={{ fontSize: 15 }}>Is token holder: {tokenholder.toString()}</Typography>
+                                <Typography variant="h2" sx={{ fontSize: 15 }}>Tokens: {JSON.stringify(tokensheld)}</Typography>
+                                <TokenSelect/>
+                                {tokenselect ?
+                                <>
+                                 <Typography variant="h2" sx={{ fontSize: 15 }}>Contract Address: {vendingaddress}</Typography>
+                                <Typography variant="h2" sx={{ fontSize: 15, marginTop:2}}>Vending Machine Balance:{contractbalance}</Typography>
+                                </>
+                               :null
+                                }
                             </CardContent>
                         </Card>
                         

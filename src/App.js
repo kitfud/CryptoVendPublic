@@ -6,6 +6,7 @@ import Home from './components/Home';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ABI from "./chain-info/abi.json"
+import ABIVending from "./chain-info/abiVending.json"
 import Connect from './components/Connect';
 import { useState, createContext } from "react";
 import Sell from './components/Sell';
@@ -30,13 +31,17 @@ let theme = createTheme({
 });
 
 function App() {
-
+  
 
   const cryptoVendAddress = contractDeploymentAddress
   const {abi} = ABI
+  const {abiVending} = ABIVending
+
+
   const contractDetails = {
     address: cryptoVendAddress,
-    abi: abi
+    abi: abi,
+    abiVending: abiVending
   }
 
   return (

@@ -31,50 +31,19 @@ const Connect = () => {
 
  const [src, setSrc]  = useState('');
 
- useEffect(()=>{
-  QrCode.toDataURL(contractaddress).then((data)=>{
-    setSrc(data)
-  })
- },[])
 
- 
-useEffect(()=>{
-  if (contract){
-contract.on("Deposit",(payee, value, time, contractBalance,event)=>{
-let data = {
-  payee: payee, 
-  amount: value.toString(),
-  time: time.toString(),
-  contractBalance: contractBalance.toString(),
-  event:event
-}
-console.log(data)
-setDepositData(data)
-contract.removeListener("Deposit",(payee,value,time,contractBalance,event))
-})
-
-
-contract.on("Withdraw", (time,amount,event)=>{
-  let data = {
-    time: time.toString(), 
-    amount:amount.toString(),
-    event:event
-  }
-  console.log(data)
-  setWithdrawInfo(data)
-  setDepositMade(true)
-  setProcessing(false)
-  contract.removeListener("Withdraw",(time,amount,event))
-})
-
-
-
-}},[contract])
-
-
-
-
-
+// contract.on("Withdraw", (time,amount,event)=>{
+//   let data = {
+//     time: time.toString(), 
+//     amount:amount.toString(),
+//     event:event
+//   }
+//   console.log(data)
+//   setWithdrawInfo(data)
+//   setDepositMade(true)
+//   setProcessing(false)
+//   contract.removeListener("Withdraw",(time,amount,event))
+// })
 
 
 const handleWithdrawBalance = async() =>{
@@ -109,6 +78,7 @@ const WithdrawVendingBalanceButton = ()=>{
     <div>
        
         <WalletConnect
+        signer = {signer}
         depositData = {depositData}
         setDepositMade={setDepositMade}
         depositMade={depositMade}
