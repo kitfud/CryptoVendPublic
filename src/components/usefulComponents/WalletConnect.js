@@ -3,6 +3,7 @@ import {  Button, CircularProgress, Box,  Typography, Card, CardContent, CardMed
 import { ethers } from 'ethers'
 import { ContractContext } from '../../App';
 import VendingMachineImage from './VendingMachineImage.png'
+import HardwareConnect from '../testComponents/HardwareConnect';
 
 export const WalletContext = createContext();
 
@@ -34,7 +35,6 @@ const WalletConnect = ({
     const [connectButtonColor, setConnectButtonColor] = useState("primary")
     const [processing, setProcessing] = useState(false)
     const [contractbalance, setContractBalance] = useState(null)
-    const [recentDeposit, setRecentDeposit] = useState(null)
     const [tokenholder, setIsTokenHolder] = useState(false)
     const [tokensheld, setTokensHeld] = useState([])
     const [vendingcontract, setVendingContract] = useState(null)
@@ -241,7 +241,9 @@ const WalletConnect = ({
             eventListenerConnect()
             
             },[vendingaddress])
-            
+        
+        const [datastream, setDataStream] = useState(null);     
+
         useEffect(()=>{
             if(vendContract!==null){
                 getContractBalance()
@@ -255,9 +257,10 @@ const WalletConnect = ({
                       contractBalance: contractBalance.toString(),
                       event:event
                                 }
-                    if(recentDepositData !== data){
+                   if(datastream !== data){
+                    setDataStream(data)
                     setDepositData(data)
-                    }
+                   }
                     vendContract.removeListener("Deposit",(payee,value,time,contractBalance,event))
                    
                             })
@@ -270,7 +273,8 @@ const WalletConnect = ({
                     event:event
                     }
                   
-                    if(recentWithdrawData!== data){
+                    if(datastream !== data){
+                    setDataStream(data)
                     setWithdrawData(data)
                     }
                     
@@ -287,19 +291,23 @@ const WalletConnect = ({
 
 
             useEffect(()=>{
+            if (depositdata){ 
             if(recentDepositData !== depositdata){ 
             setRecentDepositData(depositdata)          
             console.log("UPDATAE IN DEPOSIT DATA")
             getContractBalance()
             }
+        }
             },[depositdata])
 
             useEffect(()=>{
+                if (withdrawdata){
                 if(recentWithdrawData !== withdrawdata){  
                 setRecentWithdrawData(withdrawdata)         
                 console.log("UPDATAE IN WITHDRAW DATA")
                 getContractBalance()
                 }
+            }
             },[withdrawdata])
 
  
@@ -353,7 +361,7 @@ const WalletConnect = ({
                                  <Typography variant="h2" sx={{ fontSize: 15 }}>Contract Address: {vendingaddress}</Typography>
                                 <Typography variant="h2" sx={{ fontSize: 15, marginTop:2}}>Vending Machine Balance:{contractbalance}</Typography>
                                 <WithdrawVendingBalanceButton/>
-                                
+                                <HardwareConnect depositData={recentDepositData}/> 
                                 </>
                                :null
                                 }

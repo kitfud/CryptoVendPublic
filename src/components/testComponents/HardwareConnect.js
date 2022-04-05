@@ -2,16 +2,15 @@ import React, { useState,useEffect } from 'react';
 import {  Button, CircularProgress, Box,  Typography, Card, CardContent,Grid} from "@mui/material"
 import {connect} from "simple-web-serial";
 
-const HardwareConnect = ({depositData,setDepositData,setDepositMade}) => {
+const HardwareConnect = ({depositData}) => {
     const [connection, setConnection] = useState(null);
     const [buttontext, setButtonText] = useState("Click TO COM CONNECT")
     const [buttoncolor, setButtonColor] = useState("primary")
-    const [datastate, setData] = useState(null);
+    const [machineDataState, setMachineData] = useState(null);
     const [processing,setProcessing] = useState(false)
   
   
     const handleConnect = ()=>{
-      setProcessing(true)
       setConnection(connect(57600))
       setButtonText("COM CONNECTED")
       setButtonColor("success")
@@ -21,10 +20,9 @@ const HardwareConnect = ({depositData,setDepositData,setDepositMade}) => {
   
 
     useEffect(()=>{
-      if(depositData && connection && JSON.stringify(depositData)!== datastate){
-      setData(JSON.stringify(depositData))
-      console.log("DEPOSIT MADE")
-      setDepositMade(true);
+      if(depositData && connection !==null){
+      setMachineData(depositData)
+      console.log("DEPOSIT MADE-MACHINE TRIGGERED")
       connection.send("paymentMade",true)  
     }
      
@@ -35,11 +33,12 @@ const HardwareConnect = ({depositData,setDepositData,setDepositMade}) => {
       if(window.sessionStorage.getItem('hardwareConnectColor')=='success'){
         setButtonColor("success")
       }
+      return ()=>{handleDisconnect()}
     },[])
   
   
     const handleDisconnect = ()=>{
-
+    setButtonColor("primary")
     window.sessionStorage.clear('hardwareConnectColor')
     window.sessionStorage.clear('userAccount')
     console.log("disonnect")
@@ -89,11 +88,7 @@ const HardwareConnect = ({depositData,setDepositData,setDepositMade}) => {
     </Card>
 </Grid>
    
-  
- 
-  
-   
-   
+    
     }
   
   {

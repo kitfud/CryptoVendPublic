@@ -74,28 +74,7 @@ const Connect = () => {
         />
 
 
-        {
-          contract ?   <>
-
-
-
-        <HardwareConnect 
-          setDepositMade={setDepositMade}
-          depositData={depositData} 
-          setDepositData={setDepositData}
-            />
-
-
-   
-
       
-
-   
-
-        </> 
-
-        :null
-        }
     
 
 
