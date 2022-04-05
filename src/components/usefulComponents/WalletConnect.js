@@ -105,10 +105,10 @@ const WalletConnect = ({
 
     const eventListenerConnect = async ()=>{
         if(vendingaddress !== null){
-        console.log("address: " + vendingaddress)
-        console.log(JSON.stringify(abiVending))
+       
+        // console.log(JSON.stringify(abiVending))
         let vendContract = await new ethers.Contract(vendingaddress, abiVending,provider)
-        console.log(vendContract)
+        // console.log(vendContract)
         setVendContract(vendContract)
         }
     }
@@ -120,7 +120,6 @@ eventListenerConnect()
 },[vendingaddress])
 
 useEffect(()=>{
-console.log("vend connect")
 if(vendContract!==null){
     console.log("EVENT LISTENER ACTIVE")
     vendContract.on("Deposit",(payee, value, time, contractBalance,event)=>{
@@ -175,7 +174,7 @@ getContractBalance()
           if (holder){
             let holdingTokens = await contract.addressToTokenID(defaultAccount)
             let tokenNums = []
-            holdingTokens.forEach(element=> tokenNums.push(element.toNumber()))
+            holdingTokens.forEach(element=> {if(element.toNumber() !==0){tokenNums.push(element.toNumber())}})
             console.log(tokenNums)
             setTokensHeld(tokenNums)
           }
@@ -205,6 +204,7 @@ getContractBalance()
         return (
             !tokenselect?
             tokensheld.map((item)=>{
+                if (item !== 0){
                 return (
                     <Box key={item} sx={{display:'inline-block', paddingLeft:1,paddingRight:1}}>
                     <Card sx={{width:150, height:250}}>
@@ -219,7 +219,10 @@ getContractBalance()
                     </Card>
                    
                     </Box>)
-            }):
+                }
+            })
+            
+            :
             <Grid sx={{alignItems:"center",display:'flex', flexDirection:'column'}}>
             <Box> 
             <Card sx={{width:150, height:250}}>
@@ -283,7 +286,9 @@ if(vendingcontract!==null){
                                 <Typography variant="h2" sx={{ fontSize: 15 }}>Wallet Balance: {walletBalance}</Typography>
                                 <Typography variant="h2" sx={{ fontSize: 15 }}>Is token holder: {tokenholder.toString()}</Typography>
                                 <Typography variant="h2" sx={{ fontSize: 15 }}>Tokens: {JSON.stringify(tokensheld)}</Typography>
+
                                 <TokenSelect/>
+                                
                                 {tokenselect ?
                                 <>
                                  <Typography variant="h2" sx={{ fontSize: 15 }}>Contract Address: {vendingaddress}</Typography>
