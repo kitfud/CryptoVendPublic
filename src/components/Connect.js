@@ -46,30 +46,10 @@ const Connect = () => {
 // })
 
 
-const handleWithdrawBalance = async() =>{
-setProcessing(true)
-console.log("withdraw")
-try{
-await contract.ownerWithdraw();
-}
-catch{
-  alert("error on withdraw.")
-  setProcessing(false)
-}
-
-}
 
 
-const WithdrawVendingBalanceButton = ()=>{
-  return (
-    <Box sx={{marginTop:0.5, marginBottom:2}}>
-      <Button 
-        variant="contained" 
-        color="warning"
-        onClick={handleWithdrawBalance} >Withdraw Balance</Button>
-    </Box>
-  )
-}
+
+
 
 
 
@@ -106,13 +86,7 @@ const WithdrawVendingBalanceButton = ()=>{
             />
 
 
-        {
-          !processing?
-          <WithdrawVendingBalanceButton/> 
-          :<Box sx={{marginTop:2}}>
-            <CircularProgress/>
-            </Box>
-        }
+   
 
       
 

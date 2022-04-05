@@ -42,12 +42,15 @@ const WalletConnect = ({
     const [vendingaddress, setVendingAddress] = useState(null)
     const [vendContract, setVendContract] = useState(null)
     const [depositdata, setDepositData] = useState(null)
+    const [withdrawdata, setWithdrawData] = useState(null)
+ 
 
     const abi = contractinfo.abi
     const address = contractinfo.address
     const abiVending = contractinfo.abiVending
 
-   
+  
+
     const connectWalletHandler = () => {
         if (window.ethereum && window.ethereum.isMetaMask) {
             console.log("CONNECTING TO WALLET")
@@ -107,45 +110,15 @@ const WalletConnect = ({
         if(vendingaddress !== null){
        
         // console.log(JSON.stringify(abiVending))
-        let vendContract = await new ethers.Contract(vendingaddress, abiVending,provider)
+        let vendContract = await new ethers.Contract(vendingaddress, abiVending,signer)
         // console.log(vendContract)
         setVendContract(vendContract)
         }
     }
 
-useEffect(()=>{
-console.log("event listner connect")
-eventListenerConnect()
 
-},[vendingaddress])
-
-useEffect(()=>{
-if(vendContract!==null){
-    console.log("EVENT LISTENER ACTIVE")
-    vendContract.on("Deposit",(payee, value, time, contractBalance,event)=>{
-        let data = {
-          payee: payee, 
-          amount: value.toString(),
-          time: time.toString(),
-          contractBalance: contractBalance.toString(),
-          event:event
-                    }
-        setDepositData(data)
-        vendContract.removeListener("Deposit",(payee,value,time,contractBalance,event))
-       
-                })
-}
-
-}, [vendContract])
-
-
-useEffect(()=>{
-console.log("UPDATAE IN DEPOSIT DATA")
-getContractBalance()
-},[depositdata])
 
     const chainChangedHandler = () => {
-        // reload the page to avoid any errors with chain change mid use of application
         window.location.reload();
     }
 
@@ -159,8 +132,8 @@ getContractBalance()
     }
 
     const getContractBalance = async()=>{
-        if(vendingcontract !== null){
-        let contractBalance = await contract.getBalance(vendingcontract);
+        if(vendContract !== null){
+        let contractBalance = await vendContract.getBalance({from:defaultAccount});
         setContractBalance(ethers.utils.formatEther(contractBalance));
         }
     }
@@ -238,12 +211,98 @@ getContractBalance()
         )
     }
 
+    const WithdrawVendingBalanceButton = ()=>{
+        return (
+            !processing?
+          <Box sx={{marginTop:0.5, marginBottom:2}}>
+            <Button 
+              variant="contained" 
+              color="warning"
+              onClick={handleWithdrawBalance} >Withdraw Balance</Button>
+          </Box>:<CircularProgress sx={{marginTop:1}}/>
+        )
+      }
+
+      const handleWithdrawBalance = async() =>{
+        setProcessing(true)
+        console.log("withdraw")
+        try{
+        await vendContract.ownerWithdraw();
+        }
+        catch{
+          alert("error on withdraw.")
+          setProcessing(false)
+        }
+        
+        }
+
+        useEffect(()=>{
+            console.log("event listner connect")
+            eventListenerConnect()
+            
+            },[vendingaddress])
+            
+        useEffect(()=>{
+            if(vendContract!==null){
+                getContractBalance()
+                console.log("EVENT LISTENER ACTIVE")
+
+                vendContract.on("Deposit",(payee, value, time, contractBalance,event)=>{
+                    let data = {
+                      payee: payee, 
+                      amount: value.toString(),
+                      time: time.toString(),
+                      contractBalance: contractBalance.toString(),
+                      event:event
+                                }
+                    if(recentDepositData !== data){
+                    setDepositData(data)
+                    }
+                    vendContract.removeListener("Deposit",(payee,value,time,contractBalance,event))
+                   
+                            })
+                
+                    vendContract.on("Withdraw", (time,amount,owner,event)=>{
+                    let data = {
+                    time: time.toString(), 
+                    amount:amount.toString(),
+                    owner:owner.toString(),
+                    event:event
+                    }
+                  
+                    if(recentWithdrawData!== data){
+                    setWithdrawData(data)
+                    }
+                    
+                    setProcessing(false)
+                    vendContract.removeListener("Withdraw",(time,amount,owner,event))
+                              })
+                
+            }
+            
+            }, [vendContract])
+            
+            const [recentDepositData, setRecentDepositData] = useState(null);
+            const [recentWithdrawData, setRecentWithdrawData]= useState(null);
+
+
+            useEffect(()=>{
+            if(recentDepositData !== depositdata){ 
+            setRecentDepositData(depositdata)          
+            console.log("UPDATAE IN DEPOSIT DATA")
+            getContractBalance()
+            }
+            },[depositdata])
+
+            useEffect(()=>{
+                if(recentWithdrawData !== withdrawdata){  
+                setRecentWithdrawData(withdrawdata)         
+                console.log("UPDATAE IN WITHDRAW DATA")
+                getContractBalance()
+                }
+            },[withdrawdata])
+
  
-    useEffect(()=>{
-if(vendingcontract!==null){
-    getContractBalance()
-}
-    },[vendingcontract])
 
 
     useEffect(() => {
@@ -293,6 +352,8 @@ if(vendingcontract!==null){
                                 <>
                                  <Typography variant="h2" sx={{ fontSize: 15 }}>Contract Address: {vendingaddress}</Typography>
                                 <Typography variant="h2" sx={{ fontSize: 15, marginTop:2}}>Vending Machine Balance:{contractbalance}</Typography>
+                                <WithdrawVendingBalanceButton/>
+                                
                                 </>
                                :null
                                 }

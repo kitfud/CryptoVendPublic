@@ -61,10 +61,29 @@
                     "internalType": "uint256",
                     "name": "amount",
                     "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
                 }
             ],
             "name": "Withdraw",
             "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "factoryReference",
+            "outputs": [
+                {
+                    "internalType": "contract VendingMachineToken",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
         },
         {
             "inputs": [],
@@ -80,13 +99,7 @@
             "type": "function"
         },
         {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "caller",
-                    "type": "address"
-                }
-            ],
+            "inputs": [],
             "name": "getBalance",
             "outputs": [
                 {
@@ -99,13 +112,7 @@
             "type": "function"
         },
         {
-            "inputs": [
-                {
-                    "internalType": "address",
-                    "name": "caller",
-                    "type": "address"
-                }
-            ],
+            "inputs": [],
             "name": "ownerWithdraw",
             "outputs": [],
             "stateMutability": "nonpayable",
