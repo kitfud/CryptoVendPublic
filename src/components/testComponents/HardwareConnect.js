@@ -33,7 +33,7 @@ const HardwareConnect = ({depositData}) => {
       if(window.sessionStorage.getItem('hardwareConnectColor')=='success'){
         setButtonColor("success")
       }
-      return ()=>{handleDisconnect()}
+     
     },[])
   
   
@@ -41,6 +41,7 @@ const HardwareConnect = ({depositData}) => {
     setButtonColor("primary")
     window.sessionStorage.clear('hardwareConnectColor')
     window.sessionStorage.clear('userAccount')
+    window.sessionStorage.clear('tokenSelect')
     console.log("disonnect")
     window.location.reload(false)
     }
@@ -67,7 +68,7 @@ const HardwareConnect = ({depositData}) => {
       sx={{marginTop:"20px"}}
       onClick={handleDisconnect}
       >
-        Disconnect
+        Disconnect Machine
       </Button>
       </Box>
         

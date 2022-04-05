@@ -32,28 +32,6 @@ const Connect = () => {
  const [src, setSrc]  = useState('');
 
 
-// contract.on("Withdraw", (time,amount,event)=>{
-//   let data = {
-//     time: time.toString(), 
-//     amount:amount.toString(),
-//     event:event
-//   }
-//   console.log(data)
-//   setWithdrawInfo(data)
-//   setDepositMade(true)
-//   setProcessing(false)
-//   contract.removeListener("Withdraw",(time,amount,event))
-// })
-
-
-
-
-
-
-
-
-
-
   return (
     <div>
        

@@ -77,6 +77,7 @@ const WalletConnect = ({
             setAccountChanging(true)
             checkAccountType(newAccount);
             setDefaultAccount(userAccount.current);
+            window.sessionStorage.setItem('userAccount',userAccount.current)
             updateEthers();
         }
     
@@ -155,18 +156,22 @@ const WalletConnect = ({
     }
 
     const getVendingContract = async (select)=>{
+        if(select !== null && contract !== null){
         let contractAddress = await contract.getVendingContractAddressByToken(select)
         console.log(contractAddress)
         setVendingContract(select)
         setVendingAddress(contractAddress)
+        }
     }
 
     const handleTokenSelect = (select) =>{
+      window.sessionStorage.setItem('tokenSelect',select)
       getVendingContract(select)
       setTokenSelect(true)
     }
 
     const handleTokenDisconnect = ()=>{
+        window.sessionStorage.setItem('tokenSelect',null)
         setTokenSelect(false)
         setVendingContract(null)
         setVendingAddress(null)
@@ -196,6 +201,7 @@ const WalletConnect = ({
             })
             
             :
+            <>
             <Grid sx={{alignItems:"center",display:'flex', flexDirection:'column'}}>
             <Box> 
             <Card sx={{width:150, height:250}}>
@@ -205,9 +211,13 @@ const WalletConnect = ({
             />
             <Typography>Token: {vendingcontract}</Typography>
             <Button variant='contained' color='error' onClick={handleTokenDisconnect}>DISCONNECT</Button>
+            
             </Card>
             </Box>
             </Grid>
+
+            </>
+         
         )
     }
 
@@ -333,6 +343,30 @@ const WalletConnect = ({
 
     }, [accountchanging])
 
+    useEffect(()=>{
+    console.log(window.sessionStorage.getItem('userAccount'))
+    if(window.sessionStorage.getItem('userAccount')!== 'null'||window.sessionStorage.getItem('userAccount')!== null ){
+        setConnButtonText('Wallet Connected');
+        setConnectButtonColor("success")
+        setDefaultAccount(window.sessionStorage.getItem('userAccount'))
+        updateEthers()
+    }
+ 
+   
+    },[])
+
+    useEffect(()=>{
+    if(contract!==null){
+        let storage = window.sessionStorage.getItem('tokenSelect')
+        if(storage && storage !== 'null'){
+            console.log("TOKEN SELECT: " + window.sessionStorage.getItem('tokenSelect'))
+            handleTokenSelect(window.sessionStorage.getItem('tokenSelect'))
+            getVendingContract(window.sessionStorage.getItem('tokenSelect'))
+            getContractBalance()       
+        }
+    }
+    },[contract])
+
 
 
   return (
@@ -358,8 +392,12 @@ const WalletConnect = ({
                                 
                                 {tokenselect ?
                                 <>
-                                 <Typography variant="h2" sx={{ fontSize: 15 }}>Contract Address: {vendingaddress}</Typography>
+                                <Box sx={{marginTop:2}}>
+                                <Typography variant="h2" sx={{ fontSize: 15 }}>Contract Address: {vendingaddress}</Typography>
                                 <Typography variant="h2" sx={{ fontSize: 15, marginTop:2}}>Vending Machine Balance:{contractbalance}</Typography>
+                                </Box>
+                                 
+                                
                                 <WithdrawVendingBalanceButton/>
                                 <HardwareConnect depositData={recentDepositData}/> 
                                 </>
