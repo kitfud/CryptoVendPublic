@@ -62,11 +62,7 @@ const Navbar =() => {
           </div>   
 
 
-          <div className={classes.navlinks} >
-            <Link to="sell" className={classes.link}>
-              SELL
-            </Link>     
-          </div>   
+    
 
       </Toolbar>
     </AppBar>

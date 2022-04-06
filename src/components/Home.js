@@ -25,6 +25,7 @@ const Home = () => {
   const [tokencount, setTokenCount] = useState(null)
 
   const updateEthers = async () => {
+    
     let tempProvider = await new ethers.providers.Web3Provider(window.ethereum);
     setProvider(tempProvider);
 
@@ -46,7 +47,6 @@ setNFTPrice(ethPrice)
 const getTokenCount = async ()=>{
   if(contract !== null){
   let count =  await contract.tokenCount()
-  console.log(count.toNumber())
   setTokenCount(count.toNumber())
   return count
   }
@@ -62,6 +62,7 @@ const getTokenAddress = async ()=>{
 
 
 useEffect(()=>{
+
 updateEthers()
 },[])
 
@@ -112,7 +113,7 @@ Web3 Hardware Solutions
  </Typography>
 
  <Grid sx={{alignItems:"center",display:'flex', flexDirection:'column'}}>
- <Card variant='elevated' align='center' sx={{height:'75vh', marginTop:1,backgroundColor:'#9e00c5', width:1/2}}>
+ <Card variant='elevated' align='center' sx={{height:'85vh', marginTop:1,backgroundColor:'#9e00c5', width:1/2}}>
 <CardHeader>
 <Typography variant='h4' sx={{color:'white', marginTop:2}}> 
 

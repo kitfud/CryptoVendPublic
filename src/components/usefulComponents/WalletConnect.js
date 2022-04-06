@@ -4,6 +4,9 @@ import { ethers } from 'ethers'
 import { ContractContext } from '../../App';
 import VendingMachineImage from './VendingMachineImage.png'
 import HardwareConnect from '../testComponents/HardwareConnect';
+import TokenSelect from './TokenSelect';
+import Sell from '../Sell';
+
 
 export const WalletContext = createContext();
 
@@ -43,6 +46,7 @@ const WalletConnect = ({
     const [vendContract, setVendContract] = useState(null)
     const [depositdata, setDepositData] = useState(null)
     const [withdrawdata, setWithdrawData] = useState(null)
+    const [machineStatus, setMachineStatus] = useState(false)
  
 
     const abi = contractinfo.abi
@@ -73,6 +77,9 @@ const WalletConnect = ({
     }
     
     const accountChangedHandler = (newAccount) => {
+        window.sessionStorage.clear('userAccount')
+      
+     
         if (!accountchanging) {
             setAccountChanging(true)
             checkAccountType(newAccount);
@@ -142,7 +149,7 @@ const WalletConnect = ({
     const tokenHolderCheck = async()=>{
         if (contract !== null && defaultAccount !== null){
           let holder =  await contract.checkIfTokenHolder(defaultAccount)
-          console.log(holder)
+          console.log("is holder: "+ holder)
           setIsTokenHolder(holder)
           
           if (holder){
@@ -161,6 +168,7 @@ const WalletConnect = ({
         console.log(contractAddress)
         setVendingContract(select)
         setVendingAddress(contractAddress)
+        window.sessionStorage.setItem('vendingContractAddress',contractAddress)
         }
     }
 
@@ -172,54 +180,14 @@ const WalletConnect = ({
 
     const handleTokenDisconnect = ()=>{
         window.sessionStorage.setItem('tokenSelect',null)
+        window.sessionStorage.clear('vendingContractAddress')
         setTokenSelect(false)
         setVendingContract(null)
         setVendingAddress(null)
     }
 
 
-    const TokenSelect = ()=>{
-        return (
-            !tokenselect?
-            tokensheld.map((item)=>{
-                if (item !== 0){
-                return (
-                    <Box key={item} sx={{display:'inline-block', paddingLeft:1,paddingRight:1}}>
-                    <Card sx={{width:150, height:250}}>
-                    <CardMedia
-                    component="img"
-                    image={VendingMachineImage}
-                    />
-                    <CardContent>
-                    <Typography>Token: {item}</Typography>
-                    </CardContent>
-                    <Button variant='contained' color='success' onClick={(e)=>handleTokenSelect(item)}>CONNECT</Button>
-                    </Card>
-                   
-                    </Box>)
-                }
-            })
-            
-            :
-            <>
-            <Grid sx={{alignItems:"center",display:'flex', flexDirection:'column'}}>
-            <Box> 
-            <Card sx={{width:150, height:250}}>
-            <CardMedia
-            component="img"
-            image={VendingMachineImage}
-            />
-            <Typography>Token: {vendingcontract}</Typography>
-            <Button variant='contained' color='error' onClick={handleTokenDisconnect}>DISCONNECT</Button>
-            
-            </Card>
-            </Box>
-            </Grid>
 
-            </>
-         
-        )
-    }
 
     const WithdrawVendingBalanceButton = ()=>{
         return (
@@ -255,7 +223,8 @@ const WalletConnect = ({
         const [datastream, setDataStream] = useState(null);     
 
         useEffect(()=>{
-            if(vendContract!==null){
+            let mounted = true; 
+            if(vendContract!==null && mounted){
                 getContractBalance()
                 console.log("EVENT LISTENER ACTIVE")
 
@@ -272,6 +241,7 @@ const WalletConnect = ({
                     setDepositData(data)
                    }
                     vendContract.removeListener("Deposit",(payee,value,time,contractBalance,event))
+                   
                    
                             })
                 
@@ -293,6 +263,8 @@ const WalletConnect = ({
                               })
                 
             }
+            return ()=>{mounted = false}
+           
             
             }, [vendContract])
             
@@ -301,13 +273,16 @@ const WalletConnect = ({
 
 
             useEffect(()=>{
+            let mounted = true;
             if (depositdata){ 
-            if(recentDepositData !== depositdata){ 
+            if(mounted && recentDepositData !== depositdata){ 
+            console.log("about to set data")
             setRecentDepositData(depositdata)          
             console.log("UPDATAE IN DEPOSIT DATA")
             getContractBalance()
             }
         }
+        return ()=> mounted = false
             },[depositdata])
 
             useEffect(()=>{
@@ -320,7 +295,9 @@ const WalletConnect = ({
             }
             },[withdrawdata])
 
- 
+ useEffect(()=>{
+     console.log(tokenholder)
+ },[tokenholder])
 
 
     useEffect(() => {
@@ -341,31 +318,28 @@ const WalletConnect = ({
             window.ethereum.removeListener('chainChanged', chainChangedHandler);
         }
 
+
     }, [accountchanging])
 
-    useEffect(()=>{
-    console.log(window.sessionStorage.getItem('userAccount'))
-    if(window.sessionStorage.getItem('userAccount')!== 'null'||window.sessionStorage.getItem('userAccount')!== null ){
-        setConnButtonText('Wallet Connected');
-        setConnectButtonColor("success")
-        setDefaultAccount(window.sessionStorage.getItem('userAccount'))
-        updateEthers()
-    }
- 
-   
-    },[])
 
     useEffect(()=>{
-    if(contract!==null){
-        let storage = window.sessionStorage.getItem('tokenSelect')
-        if(storage && storage !== 'null'){
-            console.log("TOKEN SELECT: " + window.sessionStorage.getItem('tokenSelect'))
-            handleTokenSelect(window.sessionStorage.getItem('tokenSelect'))
-            getVendingContract(window.sessionStorage.getItem('tokenSelect'))
-            getContractBalance()       
-        }
-    }
-    },[contract])
+   
+
+    return ()=>window.location.reload(false);
+
+    },[])
+
+
+
+    useEffect(()=>{
+console.log("TOKEN SELECTED")
+    },[tokenselect])
+
+
+
+ 
+
+  
 
 
 
@@ -385,21 +359,34 @@ const WalletConnect = ({
                             <CardContent>
                                 <Typography variant="h2" sx={{ fontSize: 15 }}>Address: {defaultAccount}</Typography>
                                 <Typography variant="h2" sx={{ fontSize: 15 }}>Wallet Balance: {walletBalance}</Typography>
-                                <Typography variant="h2" sx={{ fontSize: 15 }}>Is token holder: {tokenholder.toString()}</Typography>
-                                <Typography variant="h2" sx={{ fontSize: 15 }}>Tokens: {JSON.stringify(tokensheld)}</Typography>
+                               
 
-                                <TokenSelect/>
+                                <TokenSelect
+                                machineStatus = {machineStatus} 
+                                tokenholder = {tokenholder}
+                                tokenselect={tokenselect} 
+                                tokensheld={tokensheld} 
+                                defaultAccount={defaultAccount}
+                                handleTokenSelect ={handleTokenSelect}
+                                vendingcontract={vendingcontract}
+                                handleTokenDisconnect = {handleTokenDisconnect}
+                                />
                                 
-                                {tokenselect ?
+                                {tokenselect && tokenholder && vendingaddress ?
                                 <>
+                        
                                 <Box sx={{marginTop:2}}>
-                                <Typography variant="h2" sx={{ fontSize: 15 }}>Contract Address: {vendingaddress}</Typography>
                                 <Typography variant="h2" sx={{ fontSize: 15, marginTop:2}}>Vending Machine Balance:{contractbalance}</Typography>
                                 </Box>
                                  
                                 
                                 <WithdrawVendingBalanceButton/>
-                                <HardwareConnect depositData={recentDepositData}/> 
+                                <Sell contractaddress={vendingaddress} />
+                                <Box>
+                                <HardwareConnect setMachineStatus={setMachineStatus} depositData={recentDepositData}/>
+                                </Box>
+                               
+                                 
                                 </>
                                :null
                                 }
