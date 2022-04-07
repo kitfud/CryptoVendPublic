@@ -50,7 +50,7 @@ function App() {
      <Container className="App">
 
   <Navbar/>
-  <Card sx={{height:'150vh',backgroundColor:'#5efc82'}}>
+  <Card sx={{height:'110vh',backgroundColor:'#5efc82'}}>
   <CardContent>
   <Routes>
            <Route path="/" element={<Home/>}/> 

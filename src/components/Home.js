@@ -108,12 +108,12 @@ const NFTReceipt = ()=>{
   <NFTReceipt/>
  
  
- <Typography variant='h3' sx={{marginBottom:2,color:'#9e00c5'}}>
+ <Typography variant='h3' sx={{marginBottom:2,marginTop:1,color:'#9e00c5'}}>
 Web3 Hardware Solutions
  </Typography>
 
  <Grid sx={{alignItems:"center",display:'flex', flexDirection:'column'}}>
- <Card variant='elevated' align='center' sx={{height:'85vh', marginTop:1,backgroundColor:'#9e00c5', width:1/2}}>
+ <Card variant='elevated' align='center' sx={{ marginTop:1,backgroundColor:'#9e00c5', width:1/2}}>
 <CardHeader>
 <Typography variant='h4' sx={{color:'white', marginTop:2}}> 
 
@@ -121,7 +121,7 @@ Web3 Hardware Solutions
 </CardHeader>
 <CardContent>
 <Card>
-<Typography>Price: {nftPrice} ETH</Typography>
+<Typography variant='h5' sx={{marginBottom:0.5}}>Price: {nftPrice} ETH</Typography>
 </Card>
 
 <CardMedia
