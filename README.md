@@ -1,4 +1,4 @@
-Account Bob is the owner of the contract- and testing is on the Kovan testnet. 
+Token based NFT which allows CryptoVend to be accessible to all via the web. 
 
 
 
